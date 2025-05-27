@@ -777,15 +777,23 @@ class ServerMonitorApp:
         else:
             self.mem_total_var.set("N/A")
 
-        if net_data['upload_speed'] is not None and net_data['upload_speed'] >= 0:
-            self.upload_var.set(f"{net_data['upload_speed'] / (1024):.2f} KB/s")
-        else:
-            self.upload_var.set("N/A")
+        def convert_speed(speed):
+            if speed is None or speed < 0:
+                return "N/A", ""
+            if speed >= 1024 * 1024:
+                return f"{speed / (1024 * 1024):.2f}", "GB/s"
+            elif speed >= 1024:
+                return f"{speed / 1024:.2f}", "MB/s"
+            else:
+                return f"{speed:.2f}", "KB/s"
 
-        if net_data['download_speed'] is not None and net_data['download_speed'] >= 0:
-            self.download_var.set(f"{net_data['download_speed'] / (1024):.2f} KB/s")
-        else:
-            self.download_var.set("N/A")
+        upload_speed = net_data.get('upload_speed')
+        upload_value, upload_unit = convert_speed(upload_speed)
+        self.upload_var.set(f"{upload_value} {upload_unit}")
+
+        download_speed = net_data.get('download_speed')
+        download_value, download_unit = convert_speed(download_speed)
+        self.download_var.set(f"{download_value} {download_unit}")
 
         if cpu_data['percent'] is not None and cpu_data['percent'] >= 80:
             self.buttons['cpu']['indicator'].config(bg='#FF0000')
